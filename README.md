@@ -1,25 +1,23 @@
 # Download
 ```sh
 git clone ...
+cd ...
 ```
 
 # Build
 ```sh
-cd ...
-mkdir build
-cd build
-cmake ..
+mkdir -p build && cd build && cmake ..
+make -j$(nproc)
 ```
-```sh
-ninja
-```
-or
-```sh
-make
-```
-
-# Run
+ 
+# Run 
 Inside `build/`
 ```sh
-./EAN
-````
+./EAN 
+```
+
+# Create Library
+```sh
+cd lib
+g++ -shared -fPIC -o ExampleLibrary.so ExampleLibrary.cpp
+```
