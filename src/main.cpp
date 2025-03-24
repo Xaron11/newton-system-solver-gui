@@ -1,5 +1,6 @@
 #include "../include/Interval.h"
 #include "../include/MainWindow.h"
+#include "../include/NewtonSystem.h"
 #include <QApplication>
 #include <iostream>
 #include <string>
@@ -11,6 +12,9 @@ int main(int argc, char *argv[]) {
   std::string left, right;
   z.IEndsToStrings(left, right);
   std::cout << "[" << left << ";" << right << "]" << std::endl;
+  // NewtonSystem(10, Vector &x, FunctionType f, DerivativeType df, int mit,
+  // double eps, int &it, int &st)
+
   QApplication app(argc, argv);
   MainWindow window;
   window.show();

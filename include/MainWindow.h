@@ -1,6 +1,7 @@
 #ifndef __MAINWINDOW_H__
 #define __MAINWINDOW_H__
 
+#include "Solver.h"
 #include <QFileDialog>
 #include <QLibrary>
 #include <QMainWindow>
@@ -10,11 +11,13 @@ class MainWindow : public QMainWindow {
   Q_OBJECT
 public:
   MainWindow(QWidget *parent = nullptr);
+  ~MainWindow() = default;
 
 private slots:
-  void loadPlugin();
+  void loadLibrary();
+  void runSolver();
 
 private:
-  void callPlugin(const QString &path);
+  std::unique_ptr<Solver> solver;
 };
 #endif // __MAINWINDOW_H__

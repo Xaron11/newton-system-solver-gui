@@ -2,4 +2,6 @@ build
 .cache
 .vscode
 mpfr-*
-Interval.h.original
+*.original
+pas
+.clangd
