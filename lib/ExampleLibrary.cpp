@@ -30,9 +30,4 @@ FUNCTION_EXPORT void evaluateDerivatives(int i, int n, const double *x,
 FUNCTION_EXPORT const char *getName() { return "Quadratic System"; }
 
 FUNCTION_EXPORT int getNumberOfEquations() { return 2; }
-
-// FUNCTION_EXPORT void getRecommendedInitialGuess(double *initialGuess) {
-//   initialGuess[1] = 1.0;
-//   initialGuess[2] = 0.0;
-// }
 }
