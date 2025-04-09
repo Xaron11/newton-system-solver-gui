@@ -43,6 +43,8 @@ public:
 
   std::string getLibraryName() const;
 
+  int getEquationsCount() const;
+
 private:
   FunctionTypeC evaluateFunction;
   DerivativeTypeC evaluateDerivatives;

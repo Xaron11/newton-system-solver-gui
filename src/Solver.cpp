@@ -63,3 +63,7 @@ std::string Solver::getLibraryName() const {
 }
 
 bool Solver::isReady() const { return functionsLoaded; }
+
+int Solver::getEquationsCount() const {
+  return functionsLoaded ? getNumberOfEquations() : 0;
+}
