@@ -30,30 +30,29 @@ bool Solver::loadLibrary(std::string libraryPath) {
   return false;
 }
 
-SolverResult Solver::solve(int numEquations, Vector &initialGuess,
-                           int maxIterations, double epsilon) {
+SolverResult Solver::solve(Vector &x, int maxIterations, double epsilon) {
   if (!functionsLoaded) {
     return {SolverStatus::FUNCTION_NOT_LOADED, 0, {}, lastError};
   }
 
+  int n = getNumberOfEquations();
   int iterations = 0;
   int status = 0;
 
-  NewtonSystem(numEquations, initialGuess, evaluateFunction,
-               evaluateDerivatives, maxIterations, epsilon, iterations, status);
+  NewtonSystem(n, x, evaluateFunction, evaluateDerivatives, maxIterations,
+               epsilon, iterations, status);
 
   switch (status) {
   case 0:
-    return {SolverStatus::SUCCESS, iterations, initialGuess, ""};
+    return {SolverStatus::SUCCESS, iterations, x, ""};
   case 1:
-    return {SolverStatus::INVALID_INPUT, iterations, initialGuess, ""};
+    return {SolverStatus::INVALID_INPUT, iterations, x, ""};
   case 2:
-    return {SolverStatus::SINGULAR_MATRIX, iterations, initialGuess, ""};
+    return {SolverStatus::SINGULAR_MATRIX, iterations, x, ""};
   case 3:
-    return {SolverStatus::MAX_ITERATIONS_EXCEEDED, iterations, initialGuess,
-            ""};
+    return {SolverStatus::MAX_ITERATIONS_EXCEEDED, iterations, x, ""};
   default:
-    return {SolverStatus::LIBRARY_ERROR, iterations, initialGuess, ""};
+    return {SolverStatus::LIBRARY_ERROR, iterations, x, ""};
   }
 }
 

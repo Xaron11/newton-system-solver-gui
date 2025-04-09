@@ -45,18 +45,23 @@ void MainWindow::runSolver() {
     return;
   }
 
-  Vector initialGuess = {0.0, 1.0, 0.0};
+  // Example initial guess and parameters for quadratic system
+  //   Vector initialGuess = {0.0, 1.0, 0.0};
+  //   int maxIterations = 100;
+  //   double epsilon = 1E-6;
+  // Example initial guess and parameters for 3-equation system
+  Vector initialGuess = {0.0, 0.1, 0.1, -0.1};
   int maxIterations = 100;
-  double epsilon = 1E-6;
+  double epsilon = 1E-16;
 
-  SolverResult result = solver->solve(2, initialGuess, maxIterations, epsilon);
+  SolverResult result = solver->solve(initialGuess, maxIterations, epsilon);
   switch (result.status) {
   case SolverStatus::SUCCESS:
     QMessageBox::information(this, "Result",
-                             QString("Result: %1, %2, %3")
-                                 .arg(result.solution[0])
+                             QString("Result: %1, %2; Iterations: %3")
                                  .arg(result.solution[1])
-                                 .arg(result.solution[2]));
+                                 .arg(result.solution[2])
+                                 .arg(result.iterations));
     break;
   case SolverStatus::INVALID_INPUT:
     QMessageBox::critical(this, "Error", "Invalid input");

@@ -33,8 +33,7 @@ public:
   bool loadLibrary(std::string libraryPath);
 
   // Solve the system with the loaded functions
-  SolverResult solve(int numEquations, Vector &initialGuess, int maxIterations,
-                     double epsilon);
+  SolverResult solve(Vector &x, int maxIterations, double epsilon);
 
   // Get the last error message
   std::string getLastError() const;
