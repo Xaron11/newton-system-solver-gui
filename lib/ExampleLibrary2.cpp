@@ -35,5 +35,5 @@ FUNCTION_EXPORT void evaluateDerivatives(int i, int n, const double *x,
 
 FUNCTION_EXPORT const char *getName() { return "Example 3-Equation System"; }
 
-FUNCTION_EXPORT int getNumberOfEquations() { return 2; }
+FUNCTION_EXPORT int getNumberOfEquations() { return 3; }
 }
