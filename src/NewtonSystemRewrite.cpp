@@ -1,10 +1,8 @@
-#include "../include/NewtonSystem.h"
-#include <algorithm>
 #include <cmath>
-#include <iostream>
 #include <vector>
 
-// Helper functions to break down complex operations
+#include "../include/NewtonSystem.h"
+
 void initializeIteration(int n1, std::vector<int> &r) {
   for (int i = 1; i <= n1; i++) {
     r[i] = 0;
@@ -12,25 +10,24 @@ void initializeIteration(int n1, std::vector<int> &r) {
 }
 
 void calculateDerivativesAndFunction(int k, int n, const Vector &x,
-                                     Vector &dfatx, std::vector<double> &a,
+                                     Vector &dfatx, std::vector<long double> &a,
                                      int n1, FunctionTypeC f,
                                      DerivativeTypeC df) {
-
   df(k, n, &x[0], &dfatx[0]);
 
   for (int i = 1; i <= n; i++) {
     a[i] = dfatx[i];
   }
 
-  double s = -f(k, n, &x[0]);
+  long double s = -f(k, n, &x[0]);
   for (int i = 1; i <= n; i++) {
     s += dfatx[i] * x[i];
   }
   a[n1] = s;
 }
 
-void updateBVector(int n, const std::vector<double> &a, std::vector<double> &b,
-                   const std::vector<int> &r) {
+void updateBVector(int n, const std::vector<long double> &a,
+                   std::vector<long double> &b, const std::vector<int> &r) {
   for (int i = 1; i <= n; i++) {
     int rh = r[i];
     if (rh != 0) {
@@ -39,16 +36,16 @@ void updateBVector(int n, const std::vector<double> &a, std::vector<double> &b,
   }
 }
 
-bool findPivot(int n1, std::vector<double> &a, const std::vector<int> &r,
-               int kh, int p, std::vector<double> &b,
-               const std::vector<double> &x1, int &l, double &max, int &jh,
-               int &lh) {
+bool findPivot(int n1, std::vector<long double> &a, const std::vector<int> &r,
+               int kh, int p, std::vector<long double> &b,
+               const std::vector<long double> &x1, int &l, long double &max,
+               int &jh, int &lh) {
   l = 0;
   max = 0;
 
   for (int j = 1; j <= n1; j++) {
     if (r[j] == 0) {
-      double s = a[j];
+      long double s = a[j];
       l++;
       int q = l;
 
@@ -71,10 +68,9 @@ bool findPivot(int n1, std::vector<double> &a, const std::vector<int> &r,
   return max != 0;
 }
 
-void performPivoting(int p, double &max, const int lh, std::vector<double> &a,
-                     std::vector<int> &r, int jh, int k, int kh,
-                     std::vector<double> &x1, int &jh_out) {
-
+void performPivoting(int p, long double &max, const int lh,
+                     std::vector<long double> &a, std::vector<int> &r, int jh,
+                     int k, int kh, std::vector<long double> &x1, int &jh_out) {
   max = 1 / a[lh];
   r[jh] = k;
 
@@ -86,7 +82,7 @@ void performPivoting(int p, double &max, const int lh, std::vector<double> &a,
   int q = 0;
 
   for (int j = 1; j <= kh; j++) {
-    double s = x1[q + lh];
+    long double s = x1[q + lh];
     for (int i = 1; i <= p; i++) {
       if (i != lh) {
         jh_out++;
@@ -104,11 +100,11 @@ void performPivoting(int p, double &max, const int lh, std::vector<double> &a,
   }
 }
 
-void reorderSolution(int n, std::vector<double> &x1, std::vector<int> &r) {
+void reorderSolution(int n, std::vector<long double> &x1, std::vector<int> &r) {
   for (int k = 1; k <= n; k++) {
     int rh = r[k];
     if (rh != k) {
-      double s = x1[k];
+      long double s = x1[k];
       x1[k] = x1[rh];
       int i = r[rh];
 
@@ -125,11 +121,11 @@ void reorderSolution(int n, std::vector<double> &x1, std::vector<int> &r) {
   }
 }
 
-bool checkConvergence(int n, const Vector &x, const std::vector<double> &x1,
-                      double eps) {
+bool checkConvergence(int n, const Vector &x,
+                      const std::vector<long double> &x1, long double eps) {
   for (int i = 1; i <= n; i++) {
-    double max_val = std::abs(x[i]);
-    double s = std::abs(x1[i]);
+    long double max_val = std::abs(x[i]);
+    long double s = std::abs(x1[i]);
 
     if (max_val < s) {
       max_val = s;
@@ -143,7 +139,7 @@ bool checkConvergence(int n, const Vector &x, const std::vector<double> &x1,
   return true;
 }
 
-void updateSolution(int n, Vector &x, const std::vector<double> &x1) {
+void updateSolution(int n, Vector &x, const std::vector<long double> &x1) {
   for (int i = 1; i <= n; i++) {
     x[i] = x1[i];
   }
@@ -167,7 +163,7 @@ void updateSolution(int n, Vector &x, const std::vector<double> &x1) {
  *           3 = iterations exceeded
  */
 void NewtonSystem(int n, Vector &x, FunctionTypeC f, DerivativeTypeC df,
-                  int mit, double eps, int &it, int &st) {
+                  int mit, long double eps, int &it, int &st) {
   // Check for valid inputs
   if (n < 1 || mit < 1) {
     st = 1;
@@ -180,10 +176,10 @@ void NewtonSystem(int n, Vector &x, FunctionTypeC f, DerivativeTypeC df,
   int n1 = n + 1;
 
   Vector dfatx(n + 1);
-  std::vector<double> a(n1 + 1);
-  std::vector<double> b(n1 + 1);
+  std::vector<long double> a(n1 + 1);
+  std::vector<long double> b(n1 + 1);
   std::vector<int> r(n1 + 1, 0);
-  std::vector<double> x1(((n + 2) * (n + 2)) / 4 + 1);
+  std::vector<long double> x1(((n + 2) * (n + 2)) / 4 + 1);
 
   bool converged = false;
 
@@ -205,7 +201,7 @@ void NewtonSystem(int n, Vector &x, FunctionTypeC f, DerivativeTypeC df,
     bool singular = false;
 
     // Process each equation in the system
-    while (k < n && st != 2) {
+    while (k < n) {
       k++;
 
       calculateDerivativesAndFunction(k, n, x, dfatx, a, n1, f, df);
@@ -213,14 +209,14 @@ void NewtonSystem(int n, Vector &x, FunctionTypeC f, DerivativeTypeC df,
 
       int kh = k - 1;
       int l = 0;
-      double max = 0;
+      long double max = 0;
       int jh = 0, lh = 0;
 
       // Find pivot element
       if (!findPivot(n1, a, r, kh, p, b, x1, l, max, jh, lh)) {
         st = 2;
         singular = true;
-        continue;
+        break;
       }
 
       // Perform pivoting

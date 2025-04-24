@@ -1,4 +1,7 @@
 #include "../include/MainWindow.h"
+
+#include <qmessagebox.h>
+
 #include <QDoubleSpinBox>
 #include <QFileDialog>
 #include <QHBoxLayout>
@@ -6,10 +9,9 @@
 #include <QMenuBar>
 #include <QPushButton>
 #include <QVBoxLayout>
+#include <ios>
 
 #include "../include/Solver.h"
-#include <iostream>
-#include <qmessagebox.h>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
   QWidget *central = new QWidget(this);
@@ -31,10 +33,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
   QLabel *epsilonLabel = new QLabel("Epsilon: ", this);
   epsilonInput = new QDoubleSpinBox(this);
-  epsilonInput->setRange(0.0, 1E10);
-  epsilonInput->setDecimals(6);
-  epsilonInput->setSingleStep(0.01);
-  epsilonInput->setValue(1E-6);
+  epsilonInput->setRange(0.0, 1E20);
+  epsilonInput->setDecimals(20);
+  epsilonInput->setSingleStep(1E-16);
+  epsilonInput->setValue(1E-16);
   QHBoxLayout *epsilonLayout = new QHBoxLayout();
   epsilonLayout->addWidget(epsilonLabel);
   epsilonLayout->addWidget(epsilonInput);
@@ -43,7 +45,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
   QLabel *maxIterationsLabel = new QLabel("Max Iterations: ", this);
   maxIterationsInput = new QSpinBox(this);
   maxIterationsInput->setRange(1, 1000);
-  maxIterationsInput->setValue(100);
+  maxIterationsInput->setValue(10);
   QHBoxLayout *maxIterationsLayout = new QHBoxLayout();
   maxIterationsLayout->addWidget(maxIterationsLabel);
   maxIterationsLayout->addWidget(maxIterationsInput);
@@ -70,7 +72,6 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::loadLibrary() {
-
   QString filePath = QFileDialog::getOpenFileName(
       this, "Select Library DLL", "", "Shared Libraries (*.so)");
 
@@ -112,8 +113,8 @@ void MainWindow::createInput(int i) {
   auto *label = new QLabel("x[" + QString::number(i) + "] = ", this);
 
   auto *spinBox = new QDoubleSpinBox(this);
-  spinBox->setRange(-1E10, 1E10);
-  spinBox->setDecimals(6);
+  spinBox->setRange(-1E5, 1E5);
+  spinBox->setDecimals(5);
   spinBox->setSingleStep(0.01);
   spinBox->setValue(0.0);
 
@@ -132,6 +133,22 @@ void MainWindow::clearInputs() {
       delete childItem;
     }
   }
+}
+
+void MainWindow::showResult(SolverResult &result) {
+  QString resultText = "Result:\n";
+  for (size_t i = 1; i < result.solution.size(); ++i) {
+    std::ostringstream resultStr;
+    resultStr << std::scientific
+              << std::uppercase
+              // << std::setprecision(18);
+              << std::setprecision(std::numeric_limits<long double>::digits10 +
+                                   1)
+              << "x[" << i << "] = " << result.solution[i] << "\n";
+    resultText += QString::fromStdString(resultStr.str());
+  }
+  resultText += QString("Iterations: %1").arg(result.iterations);
+  resultLabel->setText(resultText);
 }
 
 void MainWindow::runSolver() {
@@ -162,31 +179,29 @@ void MainWindow::runSolver() {
   SolverResult result = solver->solve(initialGuess, maxIterations, epsilon);
   QString resultText = "Result:\n";
   switch (result.status) {
-  case SolverStatus::SUCCESS:
-    QMessageBox::information(this, "Success", "Equations solved successfully");
-    for (size_t i = 1; i < result.solution.size(); ++i) {
-      resultText += QString("x[%1] = %2\n").arg(i).arg(result.solution[i]);
-    }
-    resultText += QString("Iterations: %1").arg(result.iterations);
-    resultLabel->setText(resultText);
-    break;
-  case SolverStatus::INVALID_INPUT:
-    QMessageBox::critical(this, "Error", "Invalid input");
-    break;
-  case SolverStatus::SINGULAR_MATRIX:
-    QMessageBox::critical(this, "Error", "Singular matrix");
-    break;
-  case SolverStatus::MAX_ITERATIONS_EXCEEDED:
-    QMessageBox::critical(this, "Error", "Max iterations exceeded");
-    break;
-  case SolverStatus::LIBRARY_ERROR:
-    QMessageBox::critical(this, "Error", "Library error");
-    break;
-  case SolverStatus::FUNCTION_NOT_LOADED:
-    QMessageBox::critical(this, "Error", "Functions not loaded");
-    break;
-  default:
-    QMessageBox::critical(this, "Error", solver->getLastError().c_str());
-    break;
+    case SolverStatus::SUCCESS:
+      QMessageBox::information(this, "Success",
+                               "Equations solved successfully");
+      showResult(result);
+      break;
+    case SolverStatus::INVALID_INPUT:
+      QMessageBox::critical(this, "Error", "Invalid input");
+      break;
+    case SolverStatus::SINGULAR_MATRIX:
+      QMessageBox::critical(this, "Error", "Singular matrix");
+      break;
+    case SolverStatus::MAX_ITERATIONS_EXCEEDED:
+      QMessageBox::warning(this, "Warning", "Max iterations exceeded");
+      showResult(result);
+      break;
+    case SolverStatus::LIBRARY_ERROR:
+      QMessageBox::critical(this, "Error", "Library error");
+      break;
+    case SolverStatus::FUNCTION_NOT_LOADED:
+      QMessageBox::critical(this, "Error", "Functions not loaded");
+      break;
+    default:
+      QMessageBox::critical(this, "Error", solver->getLastError().c_str());
+      break;
   }
 }

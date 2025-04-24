@@ -1,4 +1,3 @@
-
 #ifndef SOLVER_H
 #define SOLVER_H
 
@@ -33,7 +32,7 @@ public:
   bool loadLibrary(std::string libraryPath);
 
   // Solve the system with the loaded functions
-  SolverResult solve(Vector &x, int maxIterations, double epsilon);
+  SolverResult solve(Vector &x, int maxIterations, long double epsilon);
 
   // Get the last error message
   std::string getLastError() const;

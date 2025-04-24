@@ -1,9 +1,11 @@
 #include "../include/Solver.h"
-#include "../include/NewtonSystem.h"
+
 #include <QLibrary>
 #include <QMessageBox>
 #include <iostream>
 #include <string>
+
+#include "../include/NewtonSystem.h"
 
 Solver::Solver() : functionsLoaded(false) {}
 
@@ -30,7 +32,7 @@ bool Solver::loadLibrary(std::string libraryPath) {
   return false;
 }
 
-SolverResult Solver::solve(Vector &x, int maxIterations, double epsilon) {
+SolverResult Solver::solve(Vector &x, int maxIterations, long double epsilon) {
   if (!functionsLoaded) {
     return {SolverStatus::FUNCTION_NOT_LOADED, 0, {}, lastError};
   }
@@ -43,16 +45,16 @@ SolverResult Solver::solve(Vector &x, int maxIterations, double epsilon) {
                epsilon, iterations, status);
 
   switch (status) {
-  case 0:
-    return {SolverStatus::SUCCESS, iterations, x, ""};
-  case 1:
-    return {SolverStatus::INVALID_INPUT, iterations, x, ""};
-  case 2:
-    return {SolverStatus::SINGULAR_MATRIX, iterations, x, ""};
-  case 3:
-    return {SolverStatus::MAX_ITERATIONS_EXCEEDED, iterations, x, ""};
-  default:
-    return {SolverStatus::LIBRARY_ERROR, iterations, x, ""};
+    case 0:
+      return {SolverStatus::SUCCESS, iterations, x, ""};
+    case 1:
+      return {SolverStatus::INVALID_INPUT, iterations, x, ""};
+    case 2:
+      return {SolverStatus::SINGULAR_MATRIX, iterations, x, ""};
+    case 3:
+      return {SolverStatus::MAX_ITERATIONS_EXCEEDED, iterations, x, ""};
+    default:
+      return {SolverStatus::LIBRARY_ERROR, iterations, x, ""};
   }
 }
 
