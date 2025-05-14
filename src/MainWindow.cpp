@@ -9,9 +9,9 @@
 #include <QMenuBar>
 #include <QPushButton>
 #include <QVBoxLayout>
-#include <ios>
 
 #include "../include/Solver.h"
+#include "../include/SolverInterval.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
   QWidget *central = new QWidget(this);
@@ -60,7 +60,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
   setCentralWidget(central);
 
-  solver = std::make_unique<Solver>();
+  standardSolver = std::make_unique<NStandard::Solver>();
+  intervalSolver = std::make_unique<NInterval::Solver>();
   updateInterface();
 }
 
@@ -79,28 +80,45 @@ void MainWindow::loadLibrary() {
     QMessageBox::critical(this, "Error", QString("No library selected"));
     return;
   }
-  if (!solver->loadLibrary(filePath.toStdString())) {
-    QMessageBox::critical(
-        this, "Error",
-        QString("Failed to load library: %1")
-            .arg(QString::fromStdString(solver->getLastError())));
-    return;
+  switch (arithmeticMode) {
+    case ArithmeticMode::STANDARD:
+      if (!standardSolver->loadLibrary(filePath.toStdString())) {
+        QMessageBox::critical(
+            this, "Error",
+            QString("Failed to load library: %1")
+                .arg(QString::fromStdString(standardSolver->getLastError())));
+        return;
+      }
+      QMessageBox::information(
+          this, "Library Loaded",
+          QString("Name: %1")
+              .arg(QString::fromStdString(standardSolver->getLibraryName())));
+      break;
+    case ArithmeticMode::INTERVAL:
+    case ArithmeticMode::INTERVAL_INPUT:
+      if (!intervalSolver->loadLibrary(filePath.toStdString())) {
+        QMessageBox::critical(
+            this, "Error",
+            QString("Failed to load library: %1")
+                .arg(QString::fromStdString(intervalSolver->getLastError())));
+        return;
+      }
+      QMessageBox::information(
+          this, "Library Loaded",
+          QString("Name: %1")
+              .arg(QString::fromStdString(intervalSolver->getLibraryName())));
+      break;
   }
 
   updateInterface();
-
-  QMessageBox::information(
-      this, "Library Loaded",
-      QString("Name: %1")
-          .arg(QString::fromStdString(solver->getLibraryName())));
 }
 
 void MainWindow::updateInterface() {
   clearInputs();
   resultLabel->clear();
-  if (solver->isReady()) {
+  if (standardSolver->isReady()) {
     runButton->setEnabled(true);
-    int n = solver->getEquationsCount();
+    int n = standardSolver->getEquationsCount();
     for (int i = 1; i <= n; ++i) {
       createInput(i);
     }
@@ -135,7 +153,7 @@ void MainWindow::clearInputs() {
   }
 }
 
-void MainWindow::showResult(SolverResult &result) {
+void MainWindow::showResult(NStandard::SolverResult &result) {
   QString resultText = "Result:\n";
   for (size_t i = 1; i < result.solution.size(); ++i) {
     std::ostringstream resultStr;
@@ -151,8 +169,28 @@ void MainWindow::showResult(SolverResult &result) {
   resultLabel->setText(resultText);
 }
 
+void MainWindow::showResult(NInterval::SolverResult &result) {
+  QString resultText = "Result:\n";
+  for (size_t i = 1; i < result.solution.size(); ++i) {
+    std::ostringstream resultStr;
+    std::string left, right;
+    result.solution[i].IEndsToStrings(left, right);
+    //   std::cout <<  << std::endl;
+    resultStr << std::scientific
+              << std::uppercase
+              // << std::setprecision(18);
+              << std::setprecision(std::numeric_limits<long double>::digits10 +
+                                   1)
+              << "x[" << i << "] = " << "[" << left << ";" << right << "]"
+              << "\n";
+    resultText += QString::fromStdString(resultStr.str());
+  }
+  resultText += QString("Iterations: %1").arg(result.iterations);
+  resultLabel->setText(resultText);
+}
+
 void MainWindow::runSolver() {
-  if (!solver->isReady()) {
+  if (!standardSolver->isReady()) {
     QMessageBox::critical(this, "Error", "Library not loaded");
     return;
   }
@@ -165,8 +203,9 @@ void MainWindow::runSolver() {
   //   Vector initialGuess = {0.0, 0.1, 0.1, -0.1};
   //   int maxIterations = 100;
   //   double epsilon = 1E-16;
-  Vector initialGuess(solver->getEquationsCount() + 1, 0.0);
-  for (int i = 0; i < solver->getEquationsCount(); ++i) {
+
+  NStandard::Vector initialGuess(standardSolver->getEquationsCount() + 1, 0.0);
+  for (int i = 0; i < standardSolver->getEquationsCount(); ++i) {
     QDoubleSpinBox *spinBox = qobject_cast<QDoubleSpinBox *>(
         inputsGroupLayout->itemAt(i)->layout()->itemAt(1)->widget());
     if (spinBox) {
@@ -174,9 +213,10 @@ void MainWindow::runSolver() {
     }
   }
   int maxIterations = maxIterationsInput->value();
-  double epsilon = epsilonInput->value();
+  NStandard::Val epsilon = epsilonInput->value();
 
-  SolverResult result = solver->solve(initialGuess, maxIterations, epsilon);
+  NStandard::SolverResult result =
+      standardSolver->solve(initialGuess, maxIterations, epsilon);
   QString resultText = "Result:\n";
   switch (result.status) {
     case SolverStatus::SUCCESS:
@@ -201,7 +241,8 @@ void MainWindow::runSolver() {
       QMessageBox::critical(this, "Error", "Functions not loaded");
       break;
     default:
-      QMessageBox::critical(this, "Error", solver->getLastError().c_str());
+      QMessageBox::critical(this, "Error",
+                            standardSolver->getLastError().c_str());
       break;
   }
 }

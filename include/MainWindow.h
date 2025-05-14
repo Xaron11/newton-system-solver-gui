@@ -12,6 +12,13 @@
 #include <QVBoxLayout>
 
 #include "Solver.h"
+#include "SolverInterval.h"
+
+enum class ArithmeticMode {
+  STANDARD = 0,
+  INTERVAL = 1,
+  INTERVAL_INPUT = 2,
+};
 
 class MainWindow : public QMainWindow {
   Q_OBJECT
@@ -24,7 +31,9 @@ class MainWindow : public QMainWindow {
   void runSolver();
 
  private:
-  std::unique_ptr<Solver> solver;
+  std::unique_ptr<NStandard::Solver> standardSolver;
+  std::unique_ptr<NInterval::Solver> intervalSolver;
+  ArithmeticMode arithmeticMode = ArithmeticMode::INTERVAL;
   QPushButton *runButton;
   QLabel *resultLabel;
   QGroupBox *inputsGroup;
@@ -34,6 +43,7 @@ class MainWindow : public QMainWindow {
   void updateInterface();
   void clearInputs();
   void createInput(int i);
-  void showResult(SolverResult &result);
+  void showResult(NStandard::SolverResult &result);
+  void showResult(NInterval::SolverResult &result);
 };
 #endif  // __MAINWINDOW_H__

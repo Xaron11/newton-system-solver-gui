@@ -1,13 +1,11 @@
 #include <QApplication>
-#include <iostream>
-#include <string>
 
-#include "../include/Interval.h"
+// #include "../include/Interval.h"
 #include "../include/MainWindow.h"
-#include "../include/NewtonSystem.h"
+// #include "../include/NewtonSystem.h"
 
 int main(int argc, char *argv[]) {
-  //   interval_arithmetic::Interval<double> x(1, 2);
+  // interval_arithmetic::Interval<double> x(1, 2);
   //   interval_arithmetic::Interval<double> y(3, 4);
   //   interval_arithmetic::Interval<double> z = x + y;
   //   std::string left, right;

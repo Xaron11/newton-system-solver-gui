@@ -1,15 +1,15 @@
-#ifndef SOLVER_H
-#define SOLVER_H
+#ifndef SOLVER_INTERVAL_H
+#define SOLVER_INTERVAL_H
 
 #include <string>
 
-#include "./NewtonSystem.h"
+#include "./NewtonSystemInterval.h"
 #include "SolverStatus.h"
+
+namespace NInterval {
 
 using GetNameFunc = const char *(*)();
 using GetNumberOfEquationsFunc = int (*)();
-
-namespace NStandard {
 
 struct SolverResult {
   SolverStatus status;
@@ -26,7 +26,7 @@ class Solver {
   bool loadLibrary(std::string libraryPath);
 
   // Solve the system with the loaded functions
-  SolverResult solve(Vector &x, int maxIterations, Val epsilon);
+  SolverResult solve(Vector &x, int maxIterations, ValInterval epsilon);
 
   // Get the last error message
   std::string getLastError() const;
@@ -46,5 +46,5 @@ class Solver {
   bool functionsLoaded;
   std::string lastError;
 };
-}  // namespace NStandard
-#endif  // SOLVER_H
+}  // namespace NInterval
+#endif  // SOLVER_INTERVAL_H

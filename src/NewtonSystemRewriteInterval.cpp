@@ -1,8 +1,9 @@
 #include <cmath>
 #include <vector>
 
-#include "../include/NewtonSystem.h"
-namespace NStandard {
+#include "../include/NewtonSystemInterval.h"
+using ValInterval = interval_arithmetic::Interval<long double>;
+namespace NInterval {
 void initializeIteration(int n1, std::vector<int> &r) {
   for (int i = 1; i <= n1; i++) {
     r[i] = 0;
@@ -10,23 +11,24 @@ void initializeIteration(int n1, std::vector<int> &r) {
 }
 
 void calculateDerivativesAndFunction(int k, int n, const Vector &x,
-                                     Vector &dfatx, std::vector<Val> &a, int n1,
-                                     FunctionTypeC f, DerivativeTypeC df) {
+                                     Vector &dfatx, std::vector<ValInterval> &a,
+                                     int n1, FunctionTypeC f,
+                                     DerivativeTypeC df) {
   df(k, n, &x[0], &dfatx[0]);
 
   for (int i = 1; i <= n; i++) {
     a[i] = dfatx[i];
   }
 
-  Val s = -f(k, n, &x[0]);
+  ValInterval s = f(k, n, &x[0]).Opposite();
   for (int i = 1; i <= n; i++) {
-    s += dfatx[i] * x[i];
+    s = s + dfatx[i] * x[i];
   }
   a[n1] = s;
 }
 
-void updateBVector(int n, const std::vector<Val> &a, std::vector<Val> &b,
-                   const std::vector<int> &r) {
+void updateBVector(int n, const std::vector<ValInterval> &a,
+                   std::vector<ValInterval> &b, const std::vector<int> &r) {
   for (int i = 1; i <= n; i++) {
     int rh = r[i];
     if (rh != 0) {
@@ -35,15 +37,16 @@ void updateBVector(int n, const std::vector<Val> &a, std::vector<Val> &b,
   }
 }
 
-bool findPivot(int n1, std::vector<Val> &a, const std::vector<int> &r, int kh,
-               int p, std::vector<Val> &b, const std::vector<Val> &x1, int &l,
-               Val &max, int &jh, int &lh) {
+bool findPivot(int n1, std::vector<ValInterval> &a, const std::vector<int> &r,
+               int kh, int p, std::vector<ValInterval> &b,
+               const std::vector<ValInterval> &x1, int &l, ValInterval &max,
+               int &jh, int &lh) {
   l = 0;
-  max = 0;
+  max = ValInterval(0, 0);
 
   for (int j = 1; j <= n1; j++) {
     if (r[j] == 0) {
-      Val s = a[j];
+      ValInterval s = a[j];
       l++;
       int q = l;
 
@@ -53,7 +56,7 @@ bool findPivot(int n1, std::vector<Val> &a, const std::vector<int> &r, int kh,
       }
 
       a[l] = s;
-      s = std::abs(s);
+      s = IAbs(s);
 
       if (j < n1 && s > max) {
         max = s;
@@ -63,13 +66,13 @@ bool findPivot(int n1, std::vector<Val> &a, const std::vector<int> &r, int kh,
     }
   }
 
-  return max != 0;
+  return !(max.a <= 0 && max.b >= 0);
 }
 
-void performPivoting(int p, Val &max, const int lh, std::vector<Val> &a,
-                     std::vector<int> &r, int jh, int k, int kh,
-                     std::vector<Val> &x1, int &jh_out) {
-  max = 1 / a[lh];
+void performPivoting(int p, ValInterval &max, const int lh,
+                     std::vector<ValInterval> &a, std::vector<int> &r, int jh,
+                     int k, int kh, std::vector<ValInterval> &x1, int &jh_out) {
+  max = ValInterval(1, 1) / a[lh];
   r[jh] = k;
 
   for (int i = 1; i <= p; i++) {
@@ -80,7 +83,7 @@ void performPivoting(int p, Val &max, const int lh, std::vector<Val> &a,
   int q = 0;
 
   for (int j = 1; j <= kh; j++) {
-    Val s = x1[q + lh];
+    ValInterval s = x1[q + lh];
     for (int i = 1; i <= p; i++) {
       if (i != lh) {
         jh_out++;
@@ -98,11 +101,11 @@ void performPivoting(int p, Val &max, const int lh, std::vector<Val> &a,
   }
 }
 
-void reorderSolution(int n, std::vector<Val> &x1, std::vector<int> &r) {
+void reorderSolution(int n, std::vector<ValInterval> &x1, std::vector<int> &r) {
   for (int k = 1; k <= n; k++) {
     int rh = r[k];
     if (rh != k) {
-      Val s = x1[k];
+      ValInterval s = x1[k];
       x1[k] = x1[rh];
       int i = r[rh];
 
@@ -119,17 +122,17 @@ void reorderSolution(int n, std::vector<Val> &x1, std::vector<int> &r) {
   }
 }
 
-bool checkConvergence(int n, const Vector &x, const std::vector<Val> &x1,
-                      Val eps) {
+bool checkConvergence(int n, const Vector &x,
+                      const std::vector<ValInterval> &x1, ValInterval eps) {
   for (int i = 1; i <= n; i++) {
-    Val max_val = std::abs(x[i]);
-    Val s = std::abs(x1[i]);
+    ValInterval max_val = IAbs(x[i]);
+    ValInterval s = IAbs(x1[i]);
 
     if (max_val < s) {
       max_val = s;
     }
 
-    if (max_val > 0 && std::abs(x[i] - x1[i]) / max_val >= eps) {
+    if (max_val > ValInterval(0, 0) && IAbs(x[i] - x1[i]) / max_val >= eps) {
       return false;
     }
   }
@@ -137,7 +140,7 @@ bool checkConvergence(int n, const Vector &x, const std::vector<Val> &x1,
   return true;
 }
 
-void updateSolution(int n, Vector &x, const std::vector<Val> &x1) {
+void updateSolution(int n, Vector &x, const std::vector<ValInterval> &x1) {
   for (int i = 1; i <= n; i++) {
     x[i] = x1[i];
   }
@@ -161,7 +164,7 @@ void updateSolution(int n, Vector &x, const std::vector<Val> &x1) {
  *           3 = iterations exceeded
  */
 void NewtonSystem(int n, Vector &x, FunctionTypeC f, DerivativeTypeC df,
-                  int mit, Val eps, int &it, int &st) {
+                  int mit, ValInterval eps, int &it, int &st) {
   // Check for valid inputs
   if (n < 1 || mit < 1) {
     st = 1;
@@ -174,10 +177,10 @@ void NewtonSystem(int n, Vector &x, FunctionTypeC f, DerivativeTypeC df,
   int n1 = n + 1;
 
   Vector dfatx(n + 1);
-  std::vector<Val> a(n1 + 1);
-  std::vector<Val> b(n1 + 1);
+  std::vector<ValInterval> a(n1 + 1);
+  std::vector<ValInterval> b(n1 + 1);
   std::vector<int> r(n1 + 1, 0);
-  std::vector<Val> x1(((n + 2) * (n + 2)) / 4 + 1);
+  std::vector<ValInterval> x1(((n + 2) * (n + 2)) / 4 + 1);
 
   bool converged = false;
 
@@ -207,7 +210,7 @@ void NewtonSystem(int n, Vector &x, FunctionTypeC f, DerivativeTypeC df,
 
       int kh = k - 1;
       int l = 0;
-      Val max = 0;
+      ValInterval max(0, 0);
       int jh = 0, lh = 0;
 
       // Find pivot element
@@ -231,4 +234,4 @@ void NewtonSystem(int n, Vector &x, FunctionTypeC f, DerivativeTypeC df,
     }
   }
 }
-}  // namespace NStandard
+}  // namespace NInterval

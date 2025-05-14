@@ -1,12 +1,12 @@
-#include "../include/Solver.h"
+#include "../include/SolverInterval.h"
 
 #include <QLibrary>
 #include <QMessageBox>
 #include <string>
 
-#include "../include/NewtonSystem.h"
+#include "../include/NewtonSystemInterval.h"
 
-namespace NStandard {
+namespace NInterval {
 
 Solver::Solver() : functionsLoaded(false) {}
 
@@ -17,11 +17,38 @@ bool Solver::loadLibrary(std::string libraryPath) {
     return false;
   }
 
+  std::cout << "Library loaded: " << libraryPath << std::endl;
+
   evaluateFunction = (FunctionTypeC)lib.resolve("evaluateFunction");
   evaluateDerivatives = (DerivativeTypeC)lib.resolve("evaluateDerivatives");
   getName = (GetNameFunc)lib.resolve("getName");
   getNumberOfEquations =
       (GetNumberOfEquationsFunc)lib.resolve("getNumberOfEquations");
+
+  //   std::cout << "Functions loaded: " << libraryPath << std::endl;
+
+  //   if (evaluateFunction) {
+  //     std::cout << "evaluateFunction loaded" << std::endl;
+  //   } else {
+  //     std::cout << "evaluateFunction not loaded" << std::endl;
+  //   }
+  //   if (evaluateDerivatives) {
+  //     std::cout << "evaluateDerivatives loaded" << std::endl;
+  //   } else {
+  //     std::cout << "evaluateDerivatives not loaded" << std::endl;
+  //   }
+
+  //   if (getName) {
+  //     std::cout << "getName loaded" << std::endl;
+  //   } else {
+  //     std::cout << "getName not loaded" << std::endl;
+  //   }
+
+  //   if (getNumberOfEquations) {
+  //     std::cout << "getNumberOfEquations loaded" << std::endl;
+  //   } else {
+  //     std::cout << "getNumberOfEquations not loaded" << std::endl;
+  //   }
 
   if (evaluateFunction && evaluateDerivatives && getName &&
       getNumberOfEquations) {
@@ -33,7 +60,7 @@ bool Solver::loadLibrary(std::string libraryPath) {
   return false;
 }
 
-SolverResult Solver::solve(Vector &x, int maxIterations, Val epsilon) {
+SolverResult Solver::solve(Vector &x, int maxIterations, ValInterval epsilon) {
   if (!functionsLoaded) {
     return {SolverStatus::FUNCTION_NOT_LOADED, 0, {}, lastError};
   }
@@ -70,4 +97,4 @@ bool Solver::isReady() const { return functionsLoaded; }
 int Solver::getEquationsCount() const {
   return functionsLoaded ? getNumberOfEquations() : 0;
 }
-}  // namespace NStandard
+}  // namespace NInterval
