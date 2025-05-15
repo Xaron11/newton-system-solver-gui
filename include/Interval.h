@@ -130,7 +130,7 @@ class Interval {
   Interval operator*(const int &i);
   Interval operator/(const Interval<T> &i);
   Interval Projection();
-  Interval Opposite();
+  Interval Opposite() const;
   Interval Dual();
   Interval Inverse();
   T Mid();
@@ -352,7 +352,7 @@ inline Interval<T> Interval<T>::Projection() {
 }
 
 template <typename T>
-inline Interval<T> Interval<T>::Opposite() {
+inline Interval<T> Interval<T>::Opposite() const {
   Interval<T> x(this->a, this->b);
   Interval<T> r;
   r.a = -x.a;
@@ -1547,7 +1547,6 @@ bool operator<(const Interval<T> &lhs, const Interval<T> &rhs) {
 
 template <typename T>
 bool operator>=(const Interval<T> &lhs, const Interval<T> &rhs) {
-  // of rhs
   return lhs.a >= rhs.b;
 }
 

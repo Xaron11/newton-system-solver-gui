@@ -116,14 +116,30 @@ void MainWindow::loadLibrary() {
 void MainWindow::updateInterface() {
   clearInputs();
   resultLabel->clear();
-  if (standardSolver->isReady()) {
-    runButton->setEnabled(true);
-    int n = standardSolver->getEquationsCount();
-    for (int i = 1; i <= n; ++i) {
-      createInput(i);
-    }
-  } else {
-    runButton->setEnabled(false);
+  switch (arithmeticMode) {
+    case ArithmeticMode::STANDARD:
+      if (standardSolver->isReady()) {
+        runButton->setEnabled(true);
+        int n = standardSolver->getEquationsCount();
+        for (int i = 1; i <= n; ++i) {
+          createInput(i);
+        }
+      } else {
+        runButton->setEnabled(false);
+      }
+      break;
+    case ArithmeticMode::INTERVAL:
+    case ArithmeticMode::INTERVAL_INPUT:
+      if (intervalSolver->isReady()) {
+        runButton->setEnabled(true);
+        int n = intervalSolver->getEquationsCount();
+        for (int i = 1; i <= n; ++i) {
+          createInput(i);
+        }
+      } else {
+        runButton->setEnabled(false);
+      }
+      break;
   }
 }
 
@@ -189,20 +205,36 @@ void MainWindow::showResult(NInterval::SolverResult &result) {
   resultLabel->setText(resultText);
 }
 
-void MainWindow::runSolver() {
+void MainWindow::checkResultStatus(SolverStatus status) {
+  switch (status) {
+    case SolverStatus::SUCCESS:
+      QMessageBox::information(this, "Success",
+                               "Equations solved successfully");
+      break;
+    case SolverStatus::INVALID_INPUT:
+      QMessageBox::critical(this, "Error", "Invalid input");
+      break;
+    case SolverStatus::SINGULAR_MATRIX:
+      QMessageBox::critical(this, "Error", "Singular matrix");
+      break;
+    case SolverStatus::MAX_ITERATIONS_EXCEEDED:
+      QMessageBox::warning(this, "Warning", "Max iterations exceeded");
+      break;
+    case SolverStatus::LIBRARY_ERROR:
+      QMessageBox::critical(this, "Error", "Library error");
+    case SolverStatus::FUNCTION_NOT_LOADED:
+      QMessageBox::critical(this, "Error", "Functions not loaded");
+      break;
+    default:
+      break;
+  }
+}
+
+void MainWindow::runStandardSolver() {
   if (!standardSolver->isReady()) {
     QMessageBox::critical(this, "Error", "Library not loaded");
     return;
   }
-
-  // Example initial guess and parameters for quadratic system
-  //   Vector initialGuess = {0.0, 1.0, 0.0};
-  //   int maxIterations = 100;
-  //   double epsilon = 1E-6;
-  // Example initial guess and parameters for 3-equation system
-  //   Vector initialGuess = {0.0, 0.1, 0.1, -0.1};
-  //   int maxIterations = 100;
-  //   double epsilon = 1E-16;
 
   NStandard::Vector initialGuess(standardSolver->getEquationsCount() + 1, 0.0);
   for (int i = 0; i < standardSolver->getEquationsCount(); ++i) {
@@ -214,35 +246,63 @@ void MainWindow::runSolver() {
   }
   int maxIterations = maxIterationsInput->value();
   NStandard::Val epsilon = epsilonInput->value();
-
   NStandard::SolverResult result =
       standardSolver->solve(initialGuess, maxIterations, epsilon);
-  QString resultText = "Result:\n";
-  switch (result.status) {
-    case SolverStatus::SUCCESS:
-      QMessageBox::information(this, "Success",
-                               "Equations solved successfully");
-      showResult(result);
+  checkResultStatus(result.status);
+  showResult(result);
+}
+
+void MainWindow::runIntervalSolver() {
+  if (!intervalSolver->isReady()) {
+    QMessageBox::critical(this, "Error", "Library not loaded");
+    return;
+  }
+
+  NInterval::Vector initialGuess(intervalSolver->getEquationsCount() + 1,
+                                 NInterval::ValInterval(0.0, 0.0));
+  for (int i = 0; i < standardSolver->getEquationsCount(); ++i) {
+    QDoubleSpinBox *spinBox = qobject_cast<QDoubleSpinBox *>(
+        inputsGroupLayout->itemAt(i)->layout()->itemAt(1)->widget());
+    if (spinBox) {
+      initialGuess[i + 1] =
+          NInterval::ValInterval(spinBox->value(), spinBox->value());
+    }
+  }
+  int maxIterations = maxIterationsInput->value();
+  NInterval::ValInterval epsilon =
+      NInterval::ValInterval(epsilonInput->value(), epsilonInput->value());
+  NInterval::SolverResult result =
+      intervalSolver->solve(initialGuess, maxIterations, epsilon);
+  checkResultStatus(result.status);
+  showResult(result);
+}
+
+void MainWindow::runIntervalInputSolver() {
+  if (!intervalSolver->isReady()) {
+    QMessageBox::critical(this, "Error", "Library not loaded");
+    return;
+  }
+}
+
+void MainWindow::runSolver() {
+  // Example initial guess and parameters for quadratic system
+  //   Vector initialGuess = {0.0, 1.0, 0.0};
+  //   int maxIterations = 100;
+  //   double epsilon = 1E-6;
+  // Example initial guess and parameters for 3-equation system
+  //   Vector initialGuess = {0.0, 0.1, 0.1, -0.1};
+  //   int maxIterations = 100;
+  //   double epsilon = 1E-16;
+
+  switch (arithmeticMode) {
+    case ArithmeticMode::STANDARD:
+      runStandardSolver();
       break;
-    case SolverStatus::INVALID_INPUT:
-      QMessageBox::critical(this, "Error", "Invalid input");
+    case ArithmeticMode::INTERVAL:
+      runIntervalSolver();
       break;
-    case SolverStatus::SINGULAR_MATRIX:
-      QMessageBox::critical(this, "Error", "Singular matrix");
-      break;
-    case SolverStatus::MAX_ITERATIONS_EXCEEDED:
-      QMessageBox::warning(this, "Warning", "Max iterations exceeded");
-      showResult(result);
-      break;
-    case SolverStatus::LIBRARY_ERROR:
-      QMessageBox::critical(this, "Error", "Library error");
-      break;
-    case SolverStatus::FUNCTION_NOT_LOADED:
-      QMessageBox::critical(this, "Error", "Functions not loaded");
-      break;
-    default:
-      QMessageBox::critical(this, "Error",
-                            standardSolver->getLastError().c_str());
+    case ArithmeticMode::INTERVAL_INPUT:
+      runIntervalInputSolver();
       break;
   }
 }

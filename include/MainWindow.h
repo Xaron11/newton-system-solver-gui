@@ -13,6 +13,7 @@
 
 #include "Solver.h"
 #include "SolverInterval.h"
+#include "SolverStatus.h"
 
 enum class ArithmeticMode {
   STANDARD = 0,
@@ -45,5 +46,9 @@ class MainWindow : public QMainWindow {
   void createInput(int i);
   void showResult(NStandard::SolverResult &result);
   void showResult(NInterval::SolverResult &result);
+  void checkResultStatus(SolverStatus status);
+  void runStandardSolver();
+  void runIntervalSolver();
+  void runIntervalInputSolver();
 };
 #endif  // __MAINWINDOW_H__

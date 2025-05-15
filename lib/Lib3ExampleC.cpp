@@ -1,9 +1,8 @@
 #include <cmath>
-#include <cstring>
 
 #include "../include/LibraryInterface.h"
 
-// Implementation for a system of 2 equations
+// Implementation for a system of 2 equations (Book example c.)
 
 extern "C" {
 FUNCTION_EXPORT long double evaluateFunction(int i, int n,
@@ -24,7 +23,7 @@ FUNCTION_EXPORT void evaluateDerivatives(int i, int n, const long double *x,
   }
 }
 
-FUNCTION_EXPORT const char *getName() { return "Example2 System"; }
+FUNCTION_EXPORT const char *getName() { return "ExampleC"; }
 
 FUNCTION_EXPORT int getNumberOfEquations() { return 2; }
 }

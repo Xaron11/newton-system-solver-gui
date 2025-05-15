@@ -125,6 +125,8 @@ void reorderSolution(int n, std::vector<ValInterval> &x1, std::vector<int> &r) {
 bool checkConvergence(int n, const Vector &x,
                       const std::vector<ValInterval> &x1, ValInterval eps) {
   for (int i = 1; i <= n; i++) {
+    ValInterval diff = IAbs(x[i] - x1[i]);
+
     ValInterval max_val = IAbs(x[i]);
     ValInterval s = IAbs(x1[i]);
 
@@ -132,9 +134,19 @@ bool checkConvergence(int n, const Vector &x,
       max_val = s;
     }
 
-    if (max_val > ValInterval(0, 0) && IAbs(x[i] - x1[i]) / max_val >= eps) {
-      return false;
+    if (max_val.b <= 1e-15) {
+      if (diff.b >= eps.b) {
+        return false;
+      }
+    } else {
+      if (diff.b / max_val.a >= eps.b) {
+        return false;
+      }
     }
+
+    // if (max_val > ValInterval(0, 0) && diff / max_val >= eps) {
+    //   return false;
+    // }
   }
 
   return true;

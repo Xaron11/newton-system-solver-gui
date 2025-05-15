@@ -1,16 +1,15 @@
 #include <cmath>
-#include <cstring>
 
 #include "../include/LibraryInterface.h"
 
-// Implementation for a system of 3 equations
+// Implementation for a system of 3 equations (Book example a.)
 
 extern "C" {
 FUNCTION_EXPORT long double evaluateFunction(int i, int n,
                                              const long double *x) {
   if (i == 1) return 3.0L * x[1] - std::cos(x[2] * x[3]) - 0.5L;
   if (i == 2)
-    return x[1] * x[1] - 81.0L * (x[2] + 0.1L) * (x[2] + 0.1L) +
+    return x[1] * x[1] - 81.0L * ((x[2] + 0.1L) * (x[2] + 0.1L)) +
            std::sin(x[3]) + 1.06L;
   if (i == 3)
     return exp(-x[1] * x[2]) + 20.0L * x[3] + (10.0L * M_PIl - 3.0L) / 3.0L;
@@ -34,7 +33,7 @@ FUNCTION_EXPORT void evaluateDerivatives(int i, int n, const long double *x,
   }
 }
 
-FUNCTION_EXPORT const char *getName() { return "Example 3-Equation System"; }
+FUNCTION_EXPORT const char *getName() { return "ExampleA"; }
 
 FUNCTION_EXPORT int getNumberOfEquations() { return 3; }
 }
