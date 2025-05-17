@@ -152,29 +152,31 @@ void NewtonSystem(int n, Vector &x, FunctionTypeC f, DerivativeTypeC df,
       for (int i = 1; i <= n; i++) {
         ValInterval max = IAbs(x[i]);
         ValInterval s = IAbs(x1[i]);
+        ValInterval diff = IAbs(x[i] - x1[i]);
         if (max < s) {
           max = s;
         }
 
-        // if (max_val.b <= 1e-15) {
-        //     if (diff.b >= eps.b) {
-        //       return false;
-        //     }
-        //   } else {
-        //     if (diff.b / max_val.a >= eps.b) {
-        //       return false;
-        //     }
-        //   }
-        // }
-        // if (max_val > ValInterval(0, 0) && diff / max_val >= eps) {
-        //   return false;
+        if (max.b <= 1e-15) {
+          if (diff.b >= eps.b) {
+            cond = false;
+            break;
+          }
+        } else {
+          if (diff.b / max.a >= eps.b) {
+            cond = false;
+            break;
+          }
+        }
+        // if (max > ValInterval(0, 0) && diff / max >= eps) {
+        //   cond = false;
+        //   break;
         // }
 
-        if (!(max.a <= 0.0 && max.b >= 0.0) &&
-            IAbs(x[i] - x1[i]) / max >= eps) {
-          cond = false;
-          break;
-        }
+        // if (!(max.a <= 0.0 && max.b >= 0.0) && diff / max >= eps) {
+        //   cond = false;
+        //   break;
+        // }
       }
 
       for (int i = 1; i <= n; i++) {

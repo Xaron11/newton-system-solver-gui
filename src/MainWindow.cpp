@@ -8,6 +8,7 @@
 #include <QLabel>
 #include <QMenuBar>
 #include <QPushButton>
+#include <QRadioButton>
 #include <QVBoxLayout>
 
 #include "../include/Solver.h"
@@ -25,6 +26,39 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
   mainLayout->setContentsMargins(50, 50, 50, 50);
   mainLayout->setSpacing(20);
+
+  auto modeGroup = new QGroupBox("Arithmetic Mode", this);
+  QVBoxLayout *modeLayout = new QVBoxLayout();
+  modeGroup->setLayout(modeLayout);
+  mainLayout->addWidget(modeGroup);
+
+  QRadioButton *radio1 = new QRadioButton("Standard");
+  QRadioButton *radio2 = new QRadioButton("Interval (with Standard input)");
+  QRadioButton *radio3 = new QRadioButton("Interval (with Interval input)");
+
+  radio1->setChecked(true);
+
+  modeLayout->addWidget(radio1);
+  modeLayout->addWidget(radio2);
+  modeLayout->addWidget(radio3);
+  connect(radio1, &QRadioButton::toggled, [=](bool checked) {
+    if (radio1->isChecked()) {
+      arithmeticMode = ArithmeticMode::STANDARD;
+      updateInterface();
+    }
+  });
+  connect(radio2, &QRadioButton::toggled, [=](bool checked) {
+    if (radio2->isChecked()) {
+      arithmeticMode = ArithmeticMode::INTERVAL;
+      updateInterface();
+    }
+  });
+  connect(radio3, &QRadioButton::toggled, [=](bool checked) {
+    if (radio3->isChecked()) {
+      arithmeticMode = ArithmeticMode::INTERVAL_INPUT;
+      updateInterface();
+    }
+  });
 
   inputsGroup = new QGroupBox("Inputs", this);
   inputsGroupLayout = new QVBoxLayout();
@@ -146,15 +180,35 @@ void MainWindow::updateInterface() {
 void MainWindow::createInput(int i) {
   auto *label = new QLabel("x[" + QString::number(i) + "] = ", this);
 
-  auto *spinBox = new QDoubleSpinBox(this);
-  spinBox->setRange(-1E5, 1E5);
-  spinBox->setDecimals(5);
-  spinBox->setSingleStep(0.01);
-  spinBox->setValue(0.0);
-
   auto *hLayout = new QHBoxLayout();
   hLayout->addWidget(label);
-  hLayout->addWidget(spinBox);
+  switch (arithmeticMode) {
+    case ArithmeticMode::STANDARD:
+    case ArithmeticMode::INTERVAL: {
+      auto *spinBox = new QDoubleSpinBox(this);
+      spinBox->setRange(-1E5, 1E5);
+      spinBox->setDecimals(5);
+      spinBox->setSingleStep(0.1);
+      spinBox->setValue(0.0);
+      hLayout->addWidget(spinBox);
+      break;
+    }
+    case ArithmeticMode::INTERVAL_INPUT: {
+      auto *spinBoxStart = new QDoubleSpinBox(this);
+      spinBoxStart->setRange(-1E5, 1E5);
+      spinBoxStart->setDecimals(5);
+      spinBoxStart->setSingleStep(0.1);
+      spinBoxStart->setValue(0.0);
+      hLayout->addWidget(spinBoxStart);
+      auto *spinBoxEnd = new QDoubleSpinBox(this);
+      spinBoxEnd->setRange(-1E5, 1E5);
+      spinBoxEnd->setDecimals(5);
+      spinBoxEnd->setSingleStep(0.1);
+      spinBoxEnd->setValue(0.0);
+      hLayout->addWidget(spinBoxEnd);
+      break;
+    }
+  }
 
   inputsGroupLayout->addLayout(hLayout);
 }
@@ -271,7 +325,7 @@ void MainWindow::runIntervalSolver() {
 
   NInterval::Vector initialGuess(intervalSolver->getEquationsCount() + 1,
                                  NInterval::ValInterval(0.0, 0.0));
-  for (int i = 0; i < standardSolver->getEquationsCount(); ++i) {
+  for (int i = 0; i < intervalSolver->getEquationsCount(); ++i) {
     QDoubleSpinBox *spinBox = qobject_cast<QDoubleSpinBox *>(
         inputsGroupLayout->itemAt(i)->layout()->itemAt(1)->widget());
     if (spinBox) {
@@ -293,6 +347,31 @@ void MainWindow::runIntervalInputSolver() {
     QMessageBox::critical(this, "Error", "Library not loaded");
     return;
   }
+
+  if (!intervalSolver->isReady()) {
+    QMessageBox::critical(this, "Error", "Library not loaded");
+    return;
+  }
+
+  NInterval::Vector initialGuess(intervalSolver->getEquationsCount() + 1,
+                                 NInterval::ValInterval(0.0, 0.0));
+  for (int i = 0; i < intervalSolver->getEquationsCount(); ++i) {
+    QDoubleSpinBox *spinBoxStart = qobject_cast<QDoubleSpinBox *>(
+        inputsGroupLayout->itemAt(i)->layout()->itemAt(1)->widget());
+    QDoubleSpinBox *spinBoxEnd = qobject_cast<QDoubleSpinBox *>(
+        inputsGroupLayout->itemAt(i)->layout()->itemAt(2)->widget());
+    if (spinBoxStart && spinBoxEnd) {
+      initialGuess[i + 1] =
+          NInterval::ValInterval(spinBoxStart->value(), spinBoxEnd->value());
+    }
+  }
+  int maxIterations = maxIterationsInput->value();
+  NInterval::ValInterval epsilon =
+      NInterval::ValInterval(epsilonInput->value(), epsilonInput->value());
+  NInterval::SolverResult result =
+      intervalSolver->solve(initialGuess, maxIterations, epsilon);
+  checkResultStatus(result.status);
+  showResult(result);
 }
 
 void MainWindow::runSolver() {

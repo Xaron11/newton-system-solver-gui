@@ -34,7 +34,7 @@ class MainWindow : public QMainWindow {
  private:
   std::unique_ptr<NStandard::Solver> standardSolver;
   std::unique_ptr<NInterval::Solver> intervalSolver;
-  ArithmeticMode arithmeticMode = ArithmeticMode::INTERVAL;
+  ArithmeticMode arithmeticMode = ArithmeticMode::STANDARD;
   QPushButton *runButton;
   QLabel *resultLabel;
   QGroupBox *inputsGroup;
