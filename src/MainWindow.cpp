@@ -248,25 +248,23 @@ void MainWindow::showResult(NInterval::SolverResult &result) {
     std::string left, right;
     result.solution[i].IEndsToStrings(left, right);
     //   std::cout <<  << std::endl;
-    resultStr << std::scientific
-              << std::uppercase
-              // << std::setprecision(18);
-              << std::setprecision(std::numeric_limits<long double>::digits10 +
-                                   1)
-              << "x[" << i << "] = " << "[" << left << ";" << right << "]"
-              << "\n";
+    resultStr
+        << std::scientific << std::uppercase
+        << std::setprecision(18)
+        // << std::setprecision(std::numeric_limits<long double>::digits10 +
+        //                     1)
+        << "x[" << i << "] = " << "[" << left << ";" << right << "]"
+        << "\n";
+    resultStr
+        << std::scientific << std::uppercase
+        << std::setprecision(18)
+        // << std::setprecision(std::numeric_limits<long double>::digits10 +
+        //                     1)
+        << "w(x[" << i << "]) = " << result.solution[i].GetWidth() << "\n";
     resultText += QString::fromStdString(resultStr.str());
   }
-  resultStr.str("");
-  resultStr.clear();
-  resultStr << std::scientific
-            << std::uppercase
-            // << std::setprecision(18);
-            << std::setprecision(std::numeric_limits<long double>::digits10 + 1)
-            << "Width: " << result.solution[0].GetWidth() << "\n";
 
   resultText += QString("Iterations: %1\n").arg(result.iterations);
-  resultText += QString::fromStdString(resultStr.str());
   resultLabel->setText(resultText);
 }
 
