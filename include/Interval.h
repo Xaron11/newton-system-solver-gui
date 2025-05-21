@@ -476,6 +476,14 @@ inline T RightRead(const string &sa) {
 }
 
 template <typename T>
+inline Interval<T> LeftRightRead(const string &sa, const string &sb) {
+  Interval<T> int_number;
+  int_number.a = LeftRead<T>(sa);
+  int_number.b = RightRead<T>(sb);
+  return int_number;
+}
+
+template <typename T>
 T IntWidth(const Interval<T> &x) {
   SetRounding<T>(FE_UPWARD);
   T w = x.b - x.a;

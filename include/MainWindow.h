@@ -39,7 +39,7 @@ class MainWindow : public QMainWindow {
   QLabel *resultLabel;
   QGroupBox *inputsGroup;
   QVBoxLayout *inputsGroupLayout;
-  QDoubleSpinBox *epsilonInput;
+  QLineEdit *epsilonInput;
   QSpinBox *maxIterationsInput;
   void updateInterface();
   void clearInputs();
