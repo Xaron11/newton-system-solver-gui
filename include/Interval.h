@@ -1467,8 +1467,8 @@ inline Interval<T> operator*(Interval<T> x, const Interval<T> &y) {
 template <typename T>
 inline Interval<T> Interval<T>::operator*(const long double &l) {
   Interval<T> x(this->a, this->b);
-  Interval<T> y = {l, l};
-  Interval<T> r = {0, 0};
+  Interval<T> y(l, l);
+  Interval<T> r = {0.0L, 0.0L};
   switch (mode) {
     case PINT_MODE:
       r = IMul<T>(x, y);
@@ -1487,7 +1487,7 @@ inline Interval<T> Interval<T>::operator*(const long double &l) {
 template <typename T>
 inline Interval<T> Interval<T>::operator*(const int &i) {
   Interval<T> x(this->a, this->b);
-  Interval<T> y = {i, i};
+  Interval<T> y(i, i);
   Interval<T> r = {0, 0};
   switch (mode) {
     case PINT_MODE:
