@@ -150,29 +150,26 @@ void NewtonSystem(int n, Vector &x, FunctionTypeC f, DerivativeTypeC df,
 
       cond = true;
       for (int i = 1; i <= n; i++) {
-        long double max_a = std::abs(x[i].a);
-        long double max_b = std::abs(x[i].b);
-        long double s_a = std::abs(x1[i].a);
-        long double s_b = std::abs(x1[i].b);
+        long double max = std::max(std::abs(x[i].a), std::abs(x[i].b));
+        long double s = std::max(std::abs(x1[i].a), std::abs(x1[i].b));
+        long double max_ref = std::max(max, s);
 
-        long double diff_a = std::abs(x[i].a - x1[i].a);
-        long double diff_b = std::abs(x[i].b - x1[i].b);
+        if (max_ref < 1e-15L) {
+          long double diff_a = std::abs(x[i].a - x1[i].a);
+          long double diff_b = std::abs(x[i].b - x1[i].b);
 
-        if (max_a < s_a) {
-          max_a = s_a;
-        }
-        if (max_b < s_b) {
-          max_b = s_b;
-        }
+          if (diff_a > eps.a || diff_b > eps.b) {
+            cond = false;
+            break;
+          }
+        } else {
+          long double rel_diff_a = std::abs(x[i].a - x1[i].a) / max_ref;
+          long double rel_diff_b = std::abs(x[i].b - x1[i].b) / max_ref;
 
-        if (max_a > 0.0L && diff_a / max_a >= eps.a) {
-          cond = false;
-          break;
-        }
-
-        if (max_b > 0.0L && diff_b / max_b >= eps.b) {
-          cond = false;
-          break;
+          if (rel_diff_a > eps.a || rel_diff_b > eps.b) {
+            cond = false;
+            break;
+          }
         }
       }
 

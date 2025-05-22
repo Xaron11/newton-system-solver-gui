@@ -15,6 +15,7 @@
 
 #include "../include/Solver.h"
 #include "../include/SolverInterval.h"
+#include "../include/Util.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
   QWidget *central = new QWidget(this);
@@ -299,10 +300,12 @@ void MainWindow::runStandardSolver() {
     }
   }
   int maxIterations = maxIterationsInput->value();
+  NStandard::Vector inputCopy = initialGuess;
   NStandard::Val epsilon = std::stold(epsilonInput->text().toStdString());
   NStandard::SolverResult result =
       standardSolver->solve(initialGuess, maxIterations, epsilon);
   checkResultStatus(result.status);
+  checkAnswer(result, standardSolver->getLibraryName(), inputCopy);
   showResult(result);
 }
 
