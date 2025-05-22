@@ -364,15 +364,6 @@ void MainWindow::runIntervalInputSolver() {
 }
 
 void MainWindow::runSolver() {
-  // Example initial guess and parameters for quadratic system
-  //   Vector initialGuess = {0.0, 1.0, 0.0};
-  //   int maxIterations = 100;
-  //   double epsilon = 1E-6;
-  // Example initial guess and parameters for 3-equation system
-  //   Vector initialGuess = {0.0, 0.1, 0.1, -0.1};
-  //   int maxIterations = 100;
-  //   double epsilon = 1E-16;
-
   switch (arithmeticMode) {
     case ArithmeticMode::STANDARD:
       runStandardSolver();

@@ -150,33 +150,30 @@ void NewtonSystem(int n, Vector &x, FunctionTypeC f, DerivativeTypeC df,
 
       cond = true;
       for (int i = 1; i <= n; i++) {
-        ValInterval max = IAbs(x[i]);
-        ValInterval s = IAbs(x1[i]);
-        ValInterval diff = IAbs(x[i] - x1[i]);
-        if (max < s) {
-          max = s;
+        long double max_a = std::abs(x[i].a);
+        long double max_b = std::abs(x[i].b);
+        long double s_a = std::abs(x1[i].a);
+        long double s_b = std::abs(x1[i].b);
+
+        long double diff_a = std::abs(x[i].a - x1[i].a);
+        long double diff_b = std::abs(x[i].b - x1[i].b);
+
+        if (max_a < s_a) {
+          max_a = s_a;
+        }
+        if (max_b < s_b) {
+          max_b = s_b;
         }
 
-        if (max.b <= 1e-15) {
-          if (diff.b >= eps.b) {
-            cond = false;
-            break;
-          }
-        } else {
-          if (diff.b / max.a >= eps.b) {
-            cond = false;
-            break;
-          }
+        if (max_a > 0.0L && diff_a / max_a >= eps.a) {
+          cond = false;
+          break;
         }
-        // if (max > ValInterval(0, 0) && diff / max >= eps) {
-        //   cond = false;
-        //   break;
-        // }
 
-        // if (!(max.a <= 0.0 && max.b >= 0.0) && diff / max >= eps) {
-        //   cond = false;
-        //   break;
-        // }
+        if (max_b > 0.0L && diff_b / max_b >= eps.b) {
+          cond = false;
+          break;
+        }
       }
 
       for (int i = 1; i <= n; i++) {
