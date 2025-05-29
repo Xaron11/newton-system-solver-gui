@@ -1,4 +1,4 @@
-#include <cmath>
+
 
 #include "../include/LibraryInterfaceInterval.h"
 #include "../include/NewtonSystemInterval.h"
