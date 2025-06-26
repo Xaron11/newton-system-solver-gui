@@ -5,3 +5,4 @@ mpfr-*
 *.original
 pas
 .clangd
+*.changed
