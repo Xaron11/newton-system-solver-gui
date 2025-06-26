@@ -227,6 +227,7 @@ void MainWindow::showResult(NStandard::SolverResult &result) {
     resultText += QString::fromStdString(resultStr.str());
   }
   resultText += QString("Iterations: %1").arg(result.iterations);
+  std::cout << resultText.toStdString() << std::endl;
   resultLabel->setText(resultText);
 }
 
@@ -256,6 +257,7 @@ void MainWindow::showResult(NInterval::SolverResult &result) {
   }
 
   resultText += QString("Iterations: %1\n").arg(result.iterations);
+  std::cout << resultText.toStdString() << std::endl;
   resultLabel->setText(resultText);
 }
 
